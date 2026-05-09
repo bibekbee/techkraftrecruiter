@@ -29,6 +29,11 @@ export function CandidatesList() {
     role: '',
     skill: '',
   });
+  const [activeFilters, setActiveFilters] = useState({
+    status: '',
+    role: '',
+    skill: '',
+  });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
@@ -53,7 +58,9 @@ export function CandidatesList() {
     const status = searchParams.get('status') || '';
     const role = searchParams.get('role') || '';
     const skill = searchParams.get('skill') || '';
-    setFilters({ status, role, skill });
+    const initialFilters = { status, role, skill };
+    setFilters(initialFilters);
+    setActiveFilters(initialFilters);
     setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   }, [searchParams]);
@@ -62,8 +69,8 @@ export function CandidatesList() {
   const { toast } = useToast();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['candidates', filters, page],
-    queryFn: () => candidatesService.listCandidates({ ...filters, page, page_size: PAGE_SIZE }),
+    queryKey: ['candidates', activeFilters, page],
+    queryFn: () => candidatesService.listCandidates({ ...activeFilters, page, page_size: PAGE_SIZE }),
   });
 
   const candidates = data?.items ?? [];
@@ -95,11 +102,21 @@ export function CandidatesList() {
   };
 
   const handleSearch = () => {
+    setActiveFilters(filters);
+    setPage(1);
     const params: Record<string, string> = {};
     if (filters.status) params.status = filters.status;
     if (filters.role) params.role = filters.role;
     if (filters.skill) params.skill = filters.skill;
     setSearchParams(params);
+  };
+
+  const handleClear = () => {
+    const emptyFilters = { status: '', role: '', skill: '' };
+    setFilters(emptyFilters);
+    setActiveFilters(emptyFilters);
+    setPage(1);
+    setSearchParams({});
   };
 
   const deleteCandidateMutation = useMutation({
@@ -251,6 +268,7 @@ export function CandidatesList() {
             onChange={(e) => handleFilterChange('skill', e.target.value)}
           />
           <Button onClick={handleSearch}>Search</Button>
+          <Button variant="outline" onClick={handleClear}>Clear</Button>
         </div>
 
         <div className="grid gap-4">
