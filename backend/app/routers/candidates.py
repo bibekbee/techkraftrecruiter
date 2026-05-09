@@ -61,6 +61,7 @@ def get_candidate_detail(
 def create_candidate(
     candidate: schemas.CandidateCreate,
     db: Session = Depends(database.get_db),
+    current_user: dict = Depends(auth.get_current_user)
 ):
     # Check for duplicate email
     existing = db.query(models.Candidate).filter(models.Candidate.email == candidate.email).first()
@@ -79,8 +80,43 @@ def create_candidate(
     db.refresh(new_candidate)
     return new_candidate
 
+@router.patch("/{id}", response_model=schemas.CandidateResponse)
+def update_candidate(
+    id: int, 
+    candidate_update: schemas.CandidateUpdate, 
+    db: Session = Depends(database.get_db),
+    current_user: dict = Depends(auth.get_current_user)
+):
+    # 1. RBAC Check: Only admins are allowed to edit candidates
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Only admins can update candidate information"
+        )
+    
+    # 2. Fetch the candidate
+    db_candidate = db.query(models.Candidate).filter(models.Candidate.id == id).first()
+    if not db_candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    # 3. Apply updates dynamically
+    # .model_dump(exclude_unset=True) ensures we only update fields 
+    # that were actually sent in the request body.
+    update_data = candidate_update.model_dump(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        setattr(db_candidate, key, value)
+    
+    db.commit()
+    db.refresh(db_candidate)
+    return db_candidate
+
 @router.post("/{id}/summary")
-async def get_ai_summary(id: int, db: Session = Depends(database.get_db)):
+async def get_ai_summary(
+    id: int, 
+    db: Session = Depends(database.get_db),
+    current_user: dict = Depends(auth.get_current_user)
+    ):
     candidate = db.query(models.Candidate).filter(models.Candidate.id == id).first()
     if not candidate:
         raise HTTPException(status_code=404, detail="Candidate not found")
