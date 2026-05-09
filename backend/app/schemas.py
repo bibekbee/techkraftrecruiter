@@ -59,3 +59,10 @@ class CandidateResponse(CandidateBase):
 # --- Utility ---
 class AISummaryResponse(BaseModel):
     summary: str
+
+class PaginatedCandidatesResponse(BaseModel):
+    items: List[CandidateResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

@@ -1,5 +1,5 @@
 import api from './api';
-import type { Candidate, AISummary, Score } from '../types';
+import type { Candidate, AISummary, Score, PaginatedResponse } from '../types';
 
 export const candidatesService = {
   listCandidates: async (params?: {
@@ -8,7 +8,7 @@ export const candidatesService = {
     skill?: string;
     page?: number;
     page_size?: number;
-  }): Promise<Candidate[]> => {
+  }): Promise<PaginatedResponse<Candidate>> => {
     const response = await api.get('/candidates', { params });
     return response.data;
   },

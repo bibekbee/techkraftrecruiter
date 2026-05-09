@@ -30,6 +30,8 @@ export function CandidatesList() {
     skill: '',
   });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   const form = useForm<CandidateForm>({
     resolver: zodResolver(z.object({
@@ -46,22 +48,26 @@ export function CandidatesList() {
     },
   });
 
-  // Initialize filters from URL
+  // Initialize filters from URL and reset page
   useEffect(() => {
     const status = searchParams.get('status') || '';
     const role = searchParams.get('role') || '';
     const skill = searchParams.get('skill') || '';
     setFilters({ status, role, skill });
+    setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   }, [searchParams]);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: candidates = [], isLoading } = useQuery({
-    queryKey: ['candidates', filters],
-    queryFn: () => candidatesService.listCandidates(filters),
+  const { data, isLoading } = useQuery({
+    queryKey: ['candidates', filters, page],
+    queryFn: () => candidatesService.listCandidates({ ...filters, page, page_size: PAGE_SIZE }),
   });
+
+  const candidates = data?.items ?? [];
+  const totalPages = data?.total_pages ?? 1;
 
   const addCandidateMutation = useMutation({
     mutationFn: candidatesService.createCandidate,
@@ -281,6 +287,30 @@ export function CandidatesList() {
             </div>
           ))}
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              Previous
+            </Button>
+            <span className="text-sm">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
     </Layout>
   );

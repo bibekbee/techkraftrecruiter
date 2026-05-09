@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import asyncio
 
 from .. import models, schemas, auth, database
 
 router = APIRouter(prefix="/candidates", tags=["Candidates"])
 
-@router.get("/", response_model=List[schemas.CandidateResponse])
+@router.get("/", response_model=schemas.PaginatedCandidatesResponse)
 def list_candidates(
     status: str = None,
     role: str = None,
@@ -17,7 +17,6 @@ def list_candidates(
     db: Session = Depends(database.get_db),
     current_user: dict = Depends(auth.get_current_user)
 ):
-    # Optimized query: Filter at the DB level, not in Python memory!
     query = db.query(models.Candidate).filter(models.Candidate.is_archived == False)
     
     if status:
@@ -27,15 +26,23 @@ def list_candidates(
     if skill:
         query = query.filter(models.Candidate.skills.contains(skill))
 
+    total = query.count()
+    total_pages = (total + page_size - 1) // page_size
+    
     offset = (page - 1) * page_size
     candidates = query.offset(offset).limit(page_size).all()
     
-    # Logic to mask internal_notes for non-admins
     for c in candidates:
         if current_user["role"] != "admin":
             c.internal_notes = None
             
-    return candidates
+    return {
+        "items": candidates,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+    }
 
 @router.get("/{id}", response_model=schemas.CandidateResponse)
 def get_candidate_detail(
