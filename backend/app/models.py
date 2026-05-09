@@ -21,7 +21,7 @@ class Candidate(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     role_applied = Column(String, index=True)
     status = Column(String, default="new")  # new, reviewed, hired, rejected, archived
-    skills = Column(JSON, default=[]) 
+    skills = Column(JSON, default=list) 
     internal_notes = Column(String, nullable=True) 
     created_at = Column(DateTime, default=datetime.utcnow)
     

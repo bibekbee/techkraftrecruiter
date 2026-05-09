@@ -25,7 +25,7 @@ def register(user_data: schemas.UserRegister, db: Session = Depends(database.get
     db.refresh(new_user)
 
     # Generate token immediately after registration
-    access_token = auth.create_access_token(data={"sub": new_user.email, "role": new_user.role})
+    access_token = auth.create_access_token(data={"sub": new_user.email, "role": new_user.role, "id": new_user.id})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/login", response_model=schemas.Token)
