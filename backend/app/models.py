@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
+from datetime import datetime, timezone
 
 Base = declarative_base()
 
@@ -23,7 +23,7 @@ class Candidate(Base):
     status = Column(String, default="new")  # new, reviewed, hired, rejected, archived
     skills = Column(JSON, default=list) 
     internal_notes = Column(String, nullable=True) 
-    created_at = Column(DateTime, default=datetime.utcnow)
+   created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Soft delete flag
     is_archived = Column(Boolean, default=False) 
@@ -37,8 +37,9 @@ class Score(Base):
     candidate_id = Column(Integer, ForeignKey("candidates.id"))
     category = Column(String, nullable=False)
     score = Column(Integer, nullable=False) # 1-5
-    reviewer_id = Column(Integer, nullable=False)
+    reviewer_id = Column(Integer, ForeignKey("users.id"))
     note = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+   created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    reviewer = relationship("User")
 
     candidate = relationship("Candidate", back_populates="scores")
