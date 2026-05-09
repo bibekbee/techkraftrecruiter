@@ -23,7 +23,7 @@ class Candidate(Base):
     status = Column(String, default="new")  # new, reviewed, hired, rejected, archived
     skills = Column(JSON, default=list) 
     internal_notes = Column(String, nullable=True) 
-   created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Soft delete flag
     is_archived = Column(Boolean, default=False) 
@@ -39,7 +39,7 @@ class Score(Base):
     score = Column(Integer, nullable=False) # 1-5
     reviewer_id = Column(Integer, ForeignKey("users.id"))
     note = Column(String, nullable=True)
-   created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     reviewer = relationship("User")
 
     candidate = relationship("Candidate", back_populates="scores")

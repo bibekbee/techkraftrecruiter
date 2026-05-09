@@ -57,7 +57,7 @@ def get_candidate_detail(
     return candidate
 
 #I have added the Create Candidate endpoint for testing.
-@router.post("/", response_model=schemas.CandidateResponse)
+@router.post("/", response_model=schemas.CandidateResponse, status_code=status.HTTP_201_CREATED)
 def create_candidate(
     candidate: schemas.CandidateCreate,
     db: Session = Depends(database.get_db),

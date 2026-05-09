@@ -29,10 +29,10 @@ def register(user_data: schemas.UserRegister, db: Session = Depends(database.get
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/login", response_model=schemas.Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
-    user = db.query(models.User).filter(models.User.email == form_data.username).first()
+def login(login_data: schemas.LoginRequest, db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.email == login_data.username).first()
     
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+    if not user or not auth.verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
