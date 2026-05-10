@@ -132,7 +132,7 @@ async def get_ai_summary(
     await asyncio.sleep(2) 
     return {"summary": f"Based on the profile of {candidate.name}, they are a strong fit for {candidate.role_applied} role."}
 
-@router.delete("/{id}")
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def soft_delete_candidate(id: int, db: Session = Depends(database.get_db), admin=Depends(auth.check_admin_role)):
     candidate = db.query(models.Candidate).filter(models.Candidate.id == id).first()
     if not candidate:
