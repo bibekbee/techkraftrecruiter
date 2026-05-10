@@ -11,3 +11,5 @@ go to:
 you can create one admin role 
 and change it back to "reviewer" to make
 users with reviewer role.
+
+OR make use of the GUI to change the role 
