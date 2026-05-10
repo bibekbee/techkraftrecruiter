@@ -8,32 +8,45 @@ import { CandidateDetail } from './pages/CandidateDetail';
 
 const queryClient = new QueryClient();
 
-function App() {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
+  return token ? <>{children}</> : <Navigate to="/login" />;
+};
 
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = localStorage.getItem('token');
+  return token ? <Navigate to="/candidates" /> : <>{children}</>;
+};
+
+const RootRoute = () => {
+  const token = localStorage.getItem('token');
+  return <Navigate to={token ? "/candidates" : "/login"} />;
+};
+
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
           <Route
             path="/login"
-            element={token ? <Navigate to="/candidates" /> : <Login />}
+            element={<PublicRoute><Login /></PublicRoute>}
           />
           <Route
             path="/register"
-            element={token ? <Navigate to="/candidates" /> : <Register />}
+            element={<PublicRoute><Register /></PublicRoute>}
           />
           <Route
             path="/candidates"
-            element={token ? <CandidatesList /> : <Navigate to="/login" />}
+            element={<ProtectedRoute><CandidatesList /></ProtectedRoute>}
           />
           <Route
             path="/candidates/:id"
-            element={token ? <CandidateDetail /> : <Navigate to="/login" />}
+            element={<ProtectedRoute><CandidateDetail /></ProtectedRoute>}
           />
           <Route
             path="/"
-            element={<Navigate to={token ? "/candidates" : "/login"} />}
+            element={<RootRoute />}
           />
         </Routes>
         <Toaster />

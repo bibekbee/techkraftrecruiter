@@ -1,7 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form';
@@ -15,8 +16,8 @@ type LoginForm = {
 };
 
 export function Login() {
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginFormSchema),
@@ -26,27 +27,31 @@ export function Login() {
     },
   });
 
-  const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true);
-    try {
-      const response = await authService.login(data.username, data.password);
+  const loginMutation = useMutation({
+    mutationFn: async (data: LoginForm) => {
+      return await authService.login(data.username, data.password);
+    },
+    onSuccess: (response) => {
+      console.log("this is the response on Login", response)
       localStorage.setItem('token', response.access_token);
       toast({
         title: "Success",
         description: "Logged in successfully.",
         variant: "success",
       });
-      // eslint-disable-next-line react-hooks/immutability
-      window.location.href = '/candidates';
-    } catch {
+      navigate('/candidates');
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Invalid credentials.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+
+  const onSubmit = (data: LoginForm) => {
+    loginMutation.mutate(data);
   };
 
   return (
@@ -92,8 +97,8 @@ export function Login() {
             {form.formState.errors.root && (
               <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
             )}
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign In'}
+            <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+              {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
         </Form>

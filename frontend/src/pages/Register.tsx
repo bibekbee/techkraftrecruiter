@@ -1,7 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form';
@@ -15,8 +16,8 @@ type RegisterForm = {
 };
 
 export function Register() {
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerFormSchema),
@@ -26,27 +27,30 @@ export function Register() {
     },
   });
 
-  const onSubmit = async (data: RegisterForm) => {
-    setIsLoading(true);
-    try {
-      const response = await authService.register(data.email, data.password);
+  const registerMutation = useMutation({
+    mutationFn: async (data: RegisterForm) => {
+      return await authService.register(data.email, data.password);
+    },
+    onSuccess: (response) => {
       localStorage.setItem('token', response.access_token);
       toast({
         title: "Success",
         description: "Account created successfully.",
         variant: "success",
       });
-      // eslint-disable-next-line react-hooks/immutability
-      window.location.href = '/candidates';
-    } catch {
+      navigate('/candidates');
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Registration failed.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+
+  const onSubmit = (data: RegisterForm) => {
+    registerMutation.mutate(data);
   };
 
   return (
@@ -92,8 +96,8 @@ export function Register() {
             {form.formState.errors.root && (
               <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
             )}
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating account...' : 'Create Account'}
+            <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+              {registerMutation.isPending ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>
         </Form>

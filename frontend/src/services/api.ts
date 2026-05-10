@@ -19,7 +19,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     // Don't redirect on 403 - let the mutation error handler show the toast
     return Promise.reject(error);
