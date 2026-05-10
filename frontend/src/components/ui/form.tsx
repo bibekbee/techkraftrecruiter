@@ -3,7 +3,7 @@ import type { ControllerProps, FieldPath, FieldValues } from "react-hook-form"
 import { Controller, FormProvider, useFormContext } from "react-hook-form"
 import { Slot } from "@radix-ui/react-slot"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/libs/utils"
 import { Label } from "@/components/ui/label"
 
 const Form = FormProvider

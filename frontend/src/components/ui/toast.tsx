@@ -4,7 +4,7 @@ import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva } from "class-variance-authority"
 import { X } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/libs/utils"
 import { useToast } from "@/hooks/useToast"
 
 const PORTAL_ROOT_ID = "toast-portal"
